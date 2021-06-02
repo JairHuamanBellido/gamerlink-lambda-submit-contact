@@ -5,7 +5,12 @@ export const handler = async (
 ): Promise<APIGatewayProxyResult> => {
   const response = {
     statusCode: 200,
-    body: JSON.stringify("Hello from Lambda 2!"),
+    body: JSON.stringify({
+      message: "Saludos desde el API Gateway",
+    }),
   };
-  return response;
+
+  if (event.httpMethod === "GET") {
+    return response;
+  }
 };
