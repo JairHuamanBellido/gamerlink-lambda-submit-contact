@@ -35,29 +35,44 @@ const parseSuscriptionModel = (suscriptionDynamoModel: DynamoSuscription[]) => {
   return suscriptions;
 }
 
-export const handler = async (
-  event: APIGatewayProxyEvent
-): Promise<APIGatewayProxyResult> => {
+export const handler = async (event: any, context: any, callback: any) => {
 
   if (event.httpMethod === "GET") {
-    return await getSuscriptions()
-      .then((d) => ({ statusCode: 200, body: JSON.stringify(parseSuscriptionModel(d.Items as DynamoSuscription[])) }))
-      .catch(e => ({ statusCode: 400, body: JSON.stringify({ "error": e }) }))
+
+    context.succeed({
+      "statusCode": 200,
+      "headers": {
+        "X-Requested-With": '*',
+        "Access-Control-Allow-Headers": 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,x-requested-with',
+        "Access-Control-Allow-Origin": '*',
+        "Access-Control-Allow-Methods": 'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'
+      },
+      "body": await getSuscriptions().then(e => JSON.stringify(parseSuscriptionModel(e.Items as DynamoSuscription[])))
+    })
+
   }
   else if (event.httpMethod === "POST") {
-    const body = event.body
-    
-    let name = (JSON.parse(body).name) as string;
-    let email = (JSON.parse(body).email) as string;
+    try {
+      const body = event.body
 
+      let name = (JSON.parse(body).name) as string;
+      let email = (JSON.parse(body).email) as string;
 
-    return await createSuscription(name, email)
-      .then(() => ({ statusCode: 200, body: JSON.stringify({ "message": "Suscription created!" }) }))
-      .catch((e) => ({ statusCode: 400, body: JSON.stringify({ "error": e, "message": "No se ha podido realizar la suscripcion" }) }))
+      await createSuscription(name, email)
+      context.succeed({
+        "statusCode": 200,
+        "headers": {
+          "X-Requested-With": '*',
+          "Access-Control-Allow-Headers": 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,x-requested-with',
+          "Access-Control-Allow-Origin": '*',
+          "Access-Control-Allow-Methods": 'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'
+        },
+        "body": JSON.stringify({ "message": "suscripción creada" })
+      })
+    } catch (error) {
+      console.error(error)
+    }
   }
-
-
-
 };
 
 
